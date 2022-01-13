@@ -32,6 +32,42 @@ class DbButtons:
             )
         return kb
 
+    def get_active_aims_names_kb(self) -> InlineKeyboardMarkup:
+        active_aims = self.db.select_active_or_not_active_aims(active=True)
+        kb = InlineKeyboardMarkup()
+        for aim in active_aims:
+            kb.add(
+                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"active_aim_name#{aim[0]}"),
+            )
+        return kb
+
+    def get_active_or_not_active_aims_names_kb(self, active: bool) -> InlineKeyboardMarkup:
+        not_active_aims = self.db.select_active_or_not_active_aims(active=active)
+        kb = InlineKeyboardMarkup()
+        for aim in not_active_aims:
+            kb.add(
+                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#{aim[0]}"),
+            )
+        return kb
+
+    def get_tasks_names_kb(self, aim_id: int) -> InlineKeyboardMarkup:
+        tasks = self.db.get_all_tasks_ids_and_names_by_aim_id(aim_id=aim_id)
+        kb = InlineKeyboardMarkup()
+        for task in tasks:
+            kb.add(
+                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name#{task[0]}"),
+            )
+        return kb
+
+    def get_active_and_not_active_tasks_names_kb(self, aim_id: int, active: bool) -> InlineKeyboardMarkup:
+        tasks = self.db.select_active_or_not_active_tasks(aim_id=aim_id, active=active)
+        kb = InlineKeyboardMarkup()
+        for task in tasks:
+            kb.add(
+                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name_activate#{task[0]}"),
+            )
+        return kb
+
 
 def authorize() -> InlineKeyboardMarkup:
     kb = InlineKeyboardMarkup()
@@ -58,9 +94,10 @@ class PlanningButtons:
     def main_kb() -> ReplyKeyboardMarkup:
         kb = ReplyKeyboardMarkup(resize_keyboard=True, row_width=1, one_time_keyboard=True)
         kb.add(
-            KeyboardButton(buttons_names.aims_functionality, callback_data="aims_functionality"),
-            KeyboardButton(buttons_names.tasks_functionality, callback_data="tasks_functionality"),
-            KeyboardButton(buttons_names.statistics_functionality, callback_data="statistics_functionality"),
+            KeyboardButton(buttons_names.aims_functionality),
+            KeyboardButton(buttons_names.tasks_functionality),
+            KeyboardButton(buttons_names.statistics_functionality),
+            KeyboardButton(buttons_names.notifier_functionality),
         )
         return kb
 
@@ -158,3 +195,34 @@ class PlanningButtons:
         Нужна для заполнения данных по выполненным за день задачам
         """
         pass
+
+
+class NotifierButtons:
+
+    @staticmethod
+    def notifier_kb() -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(row_width=1)
+        kb.add(
+            InlineKeyboardButton(buttons_names.notifier_activate_aims,
+                                 callback_data=buttons_callbacks.activate_aims),
+            InlineKeyboardButton(buttons_names.notifier_active_aims_list,
+                                 callback_data=buttons_callbacks.active_aims_list),
+            InlineKeyboardButton(buttons_names.notifier_active_tasks,
+                                 callback_data=buttons_callbacks.active_tasks),
+            InlineKeyboardButton(buttons_names.notifier_disable_active_aims,
+                                 callback_data=buttons_callbacks.disable_active_aims),
+            InlineKeyboardButton(buttons_names.notifier_disable_active_tasks,
+                                 callback_data=buttons_callbacks.disable_active_tasks),
+        )
+        return kb
+
+    @staticmethod
+    def active_aims_kb():
+        kb = InlineKeyboardMarkup(row_width=1)
+        kb.add(
+            InlineKeyboardButton(buttons_names.notifier_active_aims_list,
+                                 callback_data=buttons_callbacks.notifier_active_aims),
+            InlineKeyboardButton(buttons_names.notifier_add_active_task_by_aim,
+                                 callback_data=buttons_callbacks.notifier_add_active_task_by_aim)
+        )
+        return kb

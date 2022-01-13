@@ -22,7 +22,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
                                        text="Для возврата в меню нажмите кнопку ниже",
                                        reply_markup=PlanningButtons.back_to_menu())
         await message.answer("Выберите нужный функционал по целям",
-                             reply_markup=PlanningButtons.aims_service_button() or PlanningButtons.back_to_menu())
+                             reply_markup=PlanningButtons.aims_service_button())
 
     @dp.message_handler(lambda m: m.text == buttons_names.statistics_functionality)
     async def handle_aims_status(message: types.Message):

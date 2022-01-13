@@ -4,7 +4,7 @@ from aiogram.utils.executor import Executor
 
 from bot_app.start_bot import init_bot, start_bot
 from bot_app.conversation.handlers.init_handlers import init_handlers
-from bot_app.dialogs.buttons import DbButtons
+from bot_app.dialogs.buttons import DbButtons, NotifierButtons
 from bot_app.tools.text_handler import UserTextParser
 
 from db.db_data_handler import DbDataHandler
@@ -28,13 +28,14 @@ def start_app():
 
         db = DbFunctions()
         db_buttons = DbButtons(dbf=db)
+        notifier_buttons = NotifierButtons()
         ut_parser = UserTextParser()
         db_data_handler = DbDataHandler(db=db)
         redis = await init_redis(environment=environment)
         redis_repository = RedisRepository(redis=redis)
         init_handlers(dp=dispatcher, db=db, redis_repository=redis_repository,
                       _env=environment, db_buttons=db_buttons, db_data_handler=db_data_handler,
-                      ut_parser=ut_parser)
+                      ut_parser=ut_parser, notifier_buttons=notifier_buttons)
 
     async def on_shutdown(*_, **__):
         pass
