@@ -14,6 +14,18 @@ class Messages:
     authorization_success: str = "Добро пожаловать!"
     add_target_value_or_not: str = "Нужно добавить числовое значение для задачи? "\
                                    "Например, если нужно прочитать 500 страниц."
+    back_to_menu_text: str = "Открываю главное меню. Выберите категорию"
+    tasks_back_to_menu: str = "Для возврата в меню нажмите кнопку ниже"
+    tasks_choose_aim: str = "Выберите цель, по которой надо посмореть задачи"
+    tasks_name_inserted: str = "Имя задачи внесено"
+    tasks_need_add_description: str = "Нужно добавить описание задачи?"
+    tasks_write_task_name: str = "Напишите наименование задачи"
+    tasks_description_message: str = "Опишите задачу. Ограничение 500 символов."
+    digit_error_message: str = "В ответе нужно указать только число! Например, 500."
+    tasks_wrong_date_format: str = "Неверный формат даты. Введите заново."
+    wrong_message_format: str = "Неверный формат сообщения. Введите информацию как в примере ниже."
+    add_target_value_text: str = "Укажите числовое значение для задачи. " \
+                                 "Например, 500. Указать нужно только число."
     deadline_message: str = "Укажите сроки выполнения задачи. "\
                             "Например, 1 год, 6 месяцев, 4 недели, 5 дней. "\
                             "Или можно внести deadline задачи в формате 31-12-2021. "\
@@ -22,6 +34,11 @@ class Messages:
     notifier_message: str = "Выберите функционал для уведомлений. " \
                             "Если вы установите статус цели как активный, то для этой " \
                             "цели будут отправляться уведомления в телеграмм"
+    notifier_choose_aim_to_activate = "Выберите цель для активации"
+    notifier_update_task_msg: str = "Нужно изменить статус задачи на активный для выбранной цели"
+    notifier_active_aim_msg: str = "Вы можете выбрать список активных целей или активировать "\
+                                   "новые задачи"
+    notifier_active_aims_list: str = "Список активных целей"
     activate_task_for_active_aim: str = "Выберите задачу для выполнения. После активации задачи " \
                                         "будут приходить уведомления по этой задаче."
     notifier_choose_aim_for_task_activate: str = "Выберите цель для активации задач"
@@ -31,14 +48,26 @@ class Messages:
                                        "цели также изменят статус на 'не активный'. Уведомления " \
                                        "больше не будут приходить."
     notifier_disable_active_task: str = "Выберите задачу для отмены статуса 'активная'. Уведомления " \
-                                       "больше не будут приходить."
+                                        "больше не будут приходить."
     notifier_aim_become_disables: str = "Статус цели изменен на неактивный. Уведомления больше не "\
-                                       "будут отправляться"
+                                        "будут отправляться"
     notifier_tasks_by_aim_disables: str = "Статус задач для цели изменен на неактивный. Уведомления "\
-                                       "больше не будут отправляться для этих задач."
+                                          "больше не будут отправляться для этих задач."
     notifier_task_disable_choose_aim: str = "Выберите цель, к которой привязана активная задача"
     notifier_task_become_disable: str = "Статус задачи изменен на неактивный. Уведомления больше не "\
-                                       "будут отправляться"
+                                        "будут отправляться"
+    insert_results_start: str = "Выберите цель, к которой прикреплена задача"
+    insert_results_choose_task: str = "Выберите задачу для внесения результатов"
+    insert_results_is_digit: str = "Задача имеет исчисляемое значение? Например, нужно прочитать 100 страниц"
+    insert_results_not_digit_msg: str = "Задачу без числовых значений можно только закрыть как выполненную. " \
+                                        "Задача на сегодняшний день выполнена?"
+    insert_results_insert_result: str = "Напишите результат в числовом выражении. Например, 50."
+    insert_results_success: str = "Результаты по задаче успешно внесены"
+    insert_results_close_nd_task: str = "Закрываю задачу"
+    insert_results_digit_task_complete: str = "Задача выполнена. Целевое значение по задаче достигнуто. " \
+                                              "Статус задачи будет установлен на неактивный. Будет добавлена " \
+                                              "дата выполнения задачи."
+    insert_task_close_nd_task_error_msg: str = "Данная задача имеет целевой показатель. Выберите другую задачу"
 
 
 @dataclass(frozen=True)
@@ -47,6 +76,7 @@ class ButtonNames:
     tasks_functionality: str = "Планирование задач"
     statistics_functionality: str = "Статус выполнения целей и задач"
     notifier_functionality: str = "Уведомления по целям и задачам"
+    insert_task_results: str = "Внести результаты выполненных задач"
     aims_status : str = "Статус исполнения целей"
     tasks_status: str = "Статус исполнения задач"
     back_to_menu: str = "Вернуться в меню"
@@ -86,6 +116,10 @@ class ConfirmationCallbacks:
     not_confirm_description: str = "description_not_add"
     tasks_confirm_target_value: str = "confirm_target_value"
     tasks_not_confirm_target_value: str = "not_confirm_target_value"
+    insert_task_digit_confirm: str = "insert_tasks_confirm_digit"
+    insert_task_digit_not_confirm: str = "insert_tasks_not_confirm_digit"
+    insert_task_close_nd_task_confirm: str = "insert_task_close_not_digit_task_confirm"
+    insert_task_close_nd_task_not_confirm: str = "insert_task_close_not_digit_task_not_confirm"
 
 
 msg = Messages()

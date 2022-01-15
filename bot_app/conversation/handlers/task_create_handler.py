@@ -24,7 +24,7 @@ def init_task_create_handler(dp: Dispatcher,
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
         if message.text == buttons_names.back_to_menu:
-            await message.answer("Открываю главное меню. Выберите категорию",
+            await message.answer(msg.back_to_menu_text,
                                  reply_markup=PlanningButtons.main_kb())
             await state.finish()
             return
@@ -33,9 +33,9 @@ def init_task_create_handler(dp: Dispatcher,
     async def handle_aims_tasks(message: types.Message, state: FSMContext):
         await state.finish()
         await message.bot.send_message(chat_id=message.chat.id,
-                                       text="Для возврата в меню нажмите кнопку ниже",
+                                       text=msg.tasks_back_to_menu,
                                        reply_markup=PlanningButtons.back_to_menu())
-        await message.answer("Выберите цель, по которой надо посмореть задачи",
+        await message.answer(msg.tasks_choose_aim,
                              reply_markup=db_buttons.get_aims_names_kb())
         await TasksState.create_tasks.set()
 
@@ -45,17 +45,17 @@ def init_task_create_handler(dp: Dispatcher,
         async with state.proxy() as data:
             data['aim_id'] = aim_id
         await TasksState.next()
-        await callback.message.answer("Напишите наименование задачи",
+        await callback.message.answer(msg.tasks_write_task_name,
                                       reply_markup=PlanningButtons.back_to_menu())
 
     @dp.message_handler(state=TasksState.insert_task_name)
     async def insert_task_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["task_name"] = message.text
-            await message.bot.send_message(chat_id=message.chat.id, text="Имя задачи внесено")
+            await message.bot.send_message(chat_id=message.chat.id, text=msg.tasks_name_inserted)
         await TasksState.next()
         await message.answer(
-            "Нужно добавить описание задачи?",
+            msg.tasks_need_add_description,
             reply_markup=confirm_or_not_confirm_kb(
                 confirm=confirmation_callbacks.confirm_description,
                 not_confirm=confirmation_callbacks.not_confirm_description
@@ -65,7 +65,7 @@ def init_task_create_handler(dp: Dispatcher,
     @dp.callback_query_handler(lambda c: c.data == confirmation_callbacks.confirm_description,
                                state=TasksState.insert_description)
     async def create_task_description(callback: types.CallbackQuery):
-        await callback.message.answer("Опишите задачу. Ограничение 500 символов.")
+        await callback.message.answer(msg.tasks_description_message)
 
     @dp.message_handler(state=TasksState.insert_description)
     async def insert_task_description(message: types.Message, state: FSMContext):
@@ -108,8 +108,7 @@ def init_task_create_handler(dp: Dispatcher,
                                state=TasksState.insert_target_value)
     async def add_target_value(callback: types.CallbackQuery):
         await callback.message.bot.send_message(chat_id=callback.message.chat.id,
-                                                text="Укажите числовое значение для задачи. "
-                                                     "Например, 500. Указать нужно только число.")
+                                                text=msg.add_target_value_text)
 
     @dp.message_handler(state=TasksState.insert_target_value)
     async def insert_target_value(message: types.Message, state: FSMContext):
@@ -118,7 +117,7 @@ def init_task_create_handler(dp: Dispatcher,
             async with state.proxy() as data:
                 data["target_value"] = target_value
         else:
-            await message.answer(text="В ответе нужно указать только число! Например, 500.")
+            await message.answer(text=msg.digit_error_message)
             return
         await TasksState.next()
         await message.bot.send_message(chat_id=message.chat.id,
@@ -139,7 +138,7 @@ def init_task_create_handler(dp: Dispatcher,
             await task_info_confirmation(message=message, state=state)
         else:
             await message.bot.send_message(chat_id=message.chat.id,
-                                           text="Неверный формат даты. Введите заново.")
+                                           text=msg.tasks_wrong_date_format)
             await message.answer(msg.deadline_message)
 
     @dp.message_handler(state=TasksState.data_confirmation)
@@ -186,8 +185,7 @@ def init_task_create_handler(dp: Dispatcher,
                             if value_date_type:
                                 date_value = value_date_type
                             else:
-                                await callback.message.answer("Неверный формат сообщения. "
-                                                              "Введите информацию как в примере ниже.")
+                                await callback.message.answer(msg.wrong_message_format)
                                 await create_task_deadline(callback)
                     if int_value and date_value:
                         info_to_db["date_value"]: int = int_value
@@ -199,8 +197,7 @@ def init_task_create_handler(dp: Dispatcher,
                 date_for_db = DateTextHandler.get_date_type_for_db(user_date_text)
                 info_to_db["deadline"] = date_for_db
             else:
-                await callback.message.answer("Неверный формат сообщения. "
-                                              "Введите информацию как в примере ниже.")
+                await callback.message.answer(msg.wrong_message_format)
                 await create_task_deadline(callback, state)
             task_id = db.insert_task(task_name=task_name, description=task_description,
                                      aim_id=aim_id, target_value=target_value)
@@ -208,8 +205,7 @@ def init_task_create_handler(dp: Dispatcher,
             if deadline:
                 db.insert_deadline(deadline=deadline, task_id=task_id)
             else:
-                await callback.message.answer("Неверный формат сообщения о deadline. "
-                                              "Введите информацию как в примере ниже.")
+                await callback.message.answer(msg.wrong_message_format)
                 await create_task_deadline(callback, state)
             await callback.message.answer("Следующие данные внесены в базу данных в таблицу tasks:\n"
                                           f"Наименование задачи: {task_name}\n"

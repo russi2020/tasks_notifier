@@ -22,7 +22,7 @@ class DbFunctions:
     def _get_cursor(self):
         return self.conn.cursor()
 
-    def _execute(self, query, values=None):
+    def _execute(self, query, values: tuple = None):
         cursor = self._get_cursor()
         cursor.execute(query, values)
 
@@ -60,7 +60,9 @@ class DbFunctions:
             return cursor.fetchall()
 
     def get_all_tasks_ids_and_names_by_aim_id(self, aim_id: int) -> List[Tuple[Any, ...]]:
-        query = """SELECT id, task_name FROM tasks WHERE aim_id=%s ORDER BY id;"""
+        query = """SELECT t.id, t.task_name FROM tasks t 
+        INNER JOIN deadline d ON t.id=d.task_id WHERE aim_id=%s 
+        AND d.date_end IS Null ORDER BY t.id;"""
         with self.conn as conn:
             cursor = self._get_cursor()
             cursor.execute(query, (aim_id,))
@@ -72,6 +74,14 @@ class DbFunctions:
             cursor = self._get_cursor()
             cursor.execute(query)
             return cursor.fetchall()
+
+    def check_task_current_and_target_values(self, task_id: int) -> List[Tuple[Any, ...]]:
+        query = """SELECT completed_from_target_value, target_value FROM tasks WHERE id=%s;
+        """
+        with self.conn:
+            cursor = self._get_cursor()
+            cursor.execute(query=query, vars=(task_id,))
+            return cursor.fetchone()
 
     def get_tasks_status_by_aim_id(self, aim_id: int) -> List[Tuple[Any, ...]]:
         query = """SELECT task_name, description, completed_from_target_value, target_value, 
@@ -92,6 +102,14 @@ class DbFunctions:
             task_id = cursor.fetchone()[0]
             return task_id
 
+    def select_deadline_by_task_id(self, task_id: int) -> List[Tuple[Any, ...]]:
+        query = """SELECT * FROM deadline;
+        """
+        with self.conn:
+            cursor = self._get_cursor()
+            cursor.execute(query, (task_id,))
+            return cursor.fetchall()
+
     def insert_deadline(self, deadline: str, task_id: int):
         query = """INSERT INTO deadline(deadline, task_id) VALUES(%s, %s)"""
         with self.conn:
@@ -103,7 +121,8 @@ class DbFunctions:
         as target_value_per_week FROM (SELECT t.id, t.task_name, 
         (t.target_value - t.completed_from_target_value)as residue_target_value, 
         TRUNC(cast((deadline - CURRENT_DATE) as decimal) / %s ,2)
-        as residue_to_deadline FROM tasks t INNER JOIN deadline d ON t.id=d.task_id WHERE aim_id=%s)td;
+        as residue_to_deadline FROM tasks t INNER JOIN deadline d ON t.id=d.task_id 
+        WHERE aim_id=%s AND d.date_end IS NULL)td;
         """
         with self.conn:
             cursor = self._get_cursor()
@@ -118,7 +137,7 @@ class DbFunctions:
         (t.target_value - t.completed_from_target_value)as residue_target_value, 
         TRUNC(cast((deadline - CURRENT_DATE) as decimal) / %s ,2)
         as residue_to_deadline FROM tasks t INNER JOIN deadline d ON t.id=d.task_id 
-        WHERE aim_id=%s and task_id=%s)td;
+        WHERE aim_id=%s AND task_id=%s AND d.date_end IS NULL)td;
         """
         with self.conn:
             cursor = self._get_cursor()
@@ -133,14 +152,16 @@ class DbFunctions:
             return cursor.fetchall()
 
     def select_active_or_not_active_tasks(self, aim_id: int, active: bool) -> List[tuple]:
-        query = """SELECT * FROM tasks WHERE active=%s and aim_id=%s ORDER BY id;"""
+        query = """SELECT * FROM tasks t INNER JOIN deadline d ON t.id = d.task_id
+        WHERE active=%s AND aim_id=%s AND d.date_end IS NULL ORDER BY t.id;"""
         with self.conn:
             cursor = self._get_cursor()
             cursor.execute(query=query, vars=(active, aim_id,))
             return cursor.fetchall()
 
     def select_all_active_or_not_active_tasks(self, active: bool):
-        query = """SELECT task_name FROM tasks WHERE active=%s ORDER BY id;"""
+        query = """SELECT t.task_name FROM tasks t INNER JOIN deadline d ON t.id = d.task_id
+        WHERE active=%s AND d.date_end IS NULL ORDER BY t.id;"""
         with self.conn:
             cursor = self._get_cursor()
             cursor.execute(query=query, vars=(active,))
@@ -166,23 +187,13 @@ class DbFunctions:
             aim_name = cursor.fetchone()[0]
             return aim_name
 
-    def set_task_status_active(self, task_id: int):
+    def set_task_status(self, task_id: int, active: bool) -> str:
         query = """
-        UPDATE tasks SET active=True WHERE id=%s RETURNING task_name;
+        UPDATE tasks SET active=%s WHERE id=%s RETURNING task_name;
         """
         with self.conn:
             cursor = self._get_cursor()
-            cursor.execute(query=query, vars=(task_id,))
-            task_name = cursor.fetchone()[0]
-            return task_name
-
-    def set_task_status_not_active(self, task_id: int):
-        query = """
-        UPDATE tasks SET active=False WHERE id=%s RETURNING task_name;
-        """
-        with self.conn:
-            cursor = self._get_cursor()
-            cursor.execute(query=query, vars=(task_id,))
+            cursor.execute(query=query, vars=(active, task_id,))
             task_name = cursor.fetchone()[0]
             return task_name
 
@@ -191,5 +202,24 @@ class DbFunctions:
         UPDATE tasks SET active=False WHERE aim_id=%s;
         """
         with self.conn:
-            cursor = self._get_cursor()
-            cursor.execute(query=query, vars=(aim_id,))
+            self._execute(query=query, values=(aim_id,))
+
+    def insert_result_for_active_task(self, task_id, result: int):
+        query = """UPDATE tasks SET 
+        completed_from_target_value=completed_from_target_value+%s WHERE id=%s;
+        """
+        with self.conn:
+            self._execute(query=query, values=(result, task_id,))
+
+    def update_deadline_date_end(self, task_id: int):
+        query = """UPDATE deadline SET date_end=CURRENT_DATE WHERE task_id=%s;
+        """
+        with self.conn:
+            self._execute(query=query, values=(task_id,))
+
+    def insert_into_task_results_by_day(self, task_id: int, result: int = None):
+        query = """INSERT INTO task_results_for_day(task_id, date, result) 
+        VALUES(%s, CURRENT_DATE, %s)
+        """
+        with self.conn:
+            self._execute(query=query, values=(task_id, result))

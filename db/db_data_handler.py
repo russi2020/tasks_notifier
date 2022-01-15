@@ -118,3 +118,24 @@ class DbDataHandler:
             task_string = f'{n}. Задача № {n}\naim_name: {task_name}\n'
             active_tasks_string += task_string
         return active_tasks_string
+
+    def check_status_for_complete(self, task_id: int) -> bool:
+        check_task_complete = self.db.check_task_current_and_target_values(task_id=task_id)
+        print("check_task_complete -> ", check_task_complete)
+        completed_from_target, target = check_task_complete
+        print("target -> ", target)
+        if completed_from_target > target:
+            return True
+        return False
+
+    def close_completed_task(self, task_id: int) -> None:
+        self.db.update_deadline_date_end(task_id=task_id)
+        self.db.set_task_status(task_id=task_id, active=False)
+
+    def check_target_value_is_digit(self, task_id: int) -> bool:
+        check_target_value = self.db.check_task_current_and_target_values(task_id=task_id)
+        _, target = check_target_value
+        print("target -> ", target)
+        if target:
+            return True
+        return False

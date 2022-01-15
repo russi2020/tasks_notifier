@@ -98,6 +98,7 @@ class PlanningButtons:
             KeyboardButton(buttons_names.tasks_functionality),
             KeyboardButton(buttons_names.statistics_functionality),
             KeyboardButton(buttons_names.notifier_functionality),
+            KeyboardButton(buttons_names.insert_task_results),
         )
         return kb
 
