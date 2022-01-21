@@ -26,6 +26,14 @@ class DbFunctions:
         cursor = self._get_cursor()
         cursor.execute(query, values)
 
+    def get_users_telegram_ids(self):
+        query = """SELECT telegram_id FROM planning_bot_user;
+        """
+        with self.conn:
+            cursor = self._get_cursor()
+            cursor.execute(query=query)
+            return cursor.fetchall()
+
     def find_user_by_email(self, email_to_check: str, values: tuple = None):
         query = """SELECT name, surname, email, telegram_id FROM planning_bot_user WHERE email = '%s';""" \
                 % (email_to_check,)
@@ -151,7 +159,7 @@ class DbFunctions:
             cursor.execute(query=query, vars=(active,))
             return cursor.fetchall()
 
-    def select_active_or_not_active_tasks(self, aim_id: int, active: bool) -> List[tuple]:
+    def select_active_or_not_active_tasks_by_aim_id(self, aim_id: int, active: bool) -> List[tuple]:
         query = """SELECT * FROM tasks t INNER JOIN deadline d ON t.id = d.task_id
         WHERE active=%s AND aim_id=%s AND d.date_end IS NULL ORDER BY t.id;"""
         with self.conn:
@@ -159,15 +167,38 @@ class DbFunctions:
             cursor.execute(query=query, vars=(active, aim_id,))
             return cursor.fetchall()
 
-    def select_all_active_or_not_active_tasks(self, active: bool):
-        query = """SELECT t.task_name FROM tasks t INNER JOIN deadline d ON t.id = d.task_id
+    def select_all_active_tasks_ids(self) -> List[tuple]:
+        """Функция для получения активных тасков. if self.conn.closed используется
+        для обхода проблемы с 'psycopg2.InterfaceError: connection already closed'.
+        В связке celery+psycopg2 есть проблема с закрытием соединения. Эта функция
+        является входной для celery приложения. В остальных функциях, которые осуществляют
+        запросы к бд, которые работают после этой проблем не возникает.
+        """
+        query = """SELECT aim_id, id FROM tasks;
+        """
+        if self.conn.closed:
+            cursor = self._get_cursor()
+            cursor.execute(query=query)
+            info = cursor.fetchall()
+            cursor.close()
+            return info
+        else:
+            with self.conn:
+                cursor = self._get_cursor()
+                cursor.execute(query=query)
+                return cursor.fetchall()
+
+    def select_all_active_or_not_active_tasks(self, active: bool) -> List[tuple]:
+        query = """SELECT t.task_name, t.completed_from_target_value, 
+        t.target_value, d.date_start, d.deadline
+        FROM tasks t INNER JOIN deadline d ON t.id = d.task_id
         WHERE active=%s AND d.date_end IS NULL ORDER BY t.id;"""
         with self.conn:
             cursor = self._get_cursor()
             cursor.execute(query=query, vars=(active,))
             return cursor.fetchall()
 
-    def set_aim_status_active(self, aim_id: int):
+    def set_aim_status_active(self, aim_id: int) -> str:
         query = """
         UPDATE aims SET active=True WHERE id=%s RETURNING aim_name;
         """
@@ -177,7 +208,7 @@ class DbFunctions:
             aim_name = cursor.fetchone()[0]
             return aim_name
 
-    def set_aim_status_not_active(self, aim_id: int):
+    def set_aim_status_not_active(self, aim_id: int) -> str:
         query = """
         UPDATE aims SET active=False WHERE id=%s RETURNING aim_name;
         """

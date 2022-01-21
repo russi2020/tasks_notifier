@@ -60,7 +60,7 @@ class DbButtons:
         return kb
 
     def get_active_and_not_active_tasks_names_kb(self, aim_id: int, active: bool) -> InlineKeyboardMarkup:
-        tasks = self.db.select_active_or_not_active_tasks(aim_id=aim_id, active=active)
+        tasks = self.db.select_active_or_not_active_tasks_by_aim_id(aim_id=aim_id, active=active)
         kb = InlineKeyboardMarkup()
         for task in tasks:
             kb.add(
