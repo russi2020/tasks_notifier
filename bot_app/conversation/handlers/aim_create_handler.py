@@ -24,13 +24,13 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
         await message.answer("Выберите нужный функционал по целям",
                              reply_markup=PlanningButtons.aims_service_button())
 
-    @dp.message_handler(lambda m: m.text == buttons_names.statistics_functionality)
-    async def handle_aims_status(message: types.Message):
-        aims_status = db_data_handler.get_aims_status_string()
-        await message.bot.send_message(chat_id=message.chat.id,
-                                       text="Для возврата в меню нажмите кнопку ниже",
-                                       reply_markup=PlanningButtons.back_to_menu())
-        await message.answer(aims_status)
+    # @dp.message_handler(lambda m: m.text == buttons_names.statistics_functionality)
+    # async def handle_aims_status(message: types.Message):
+    #     aims_status = db_data_handler.get_aims_status_string()
+    #     await message.bot.send_message(chat_id=message.chat.id,
+    #                                    text="Для возврата в меню нажмите кнопку ниже",
+    #                                    reply_markup=PlanningButtons.back_to_menu())
+    #     await message.answer(aims_status)
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"))
     async def get_tasks_by_aim_name(callback: types.CallbackQuery):

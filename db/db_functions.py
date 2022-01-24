@@ -93,7 +93,7 @@ class DbFunctions:
 
     def get_tasks_status_by_aim_id(self, aim_id: int) -> List[Tuple[Any, ...]]:
         query = """SELECT task_name, description, completed_from_target_value, target_value, 
-        TRUNC((cast(completed_from_aim_value as decimal) / aim_value * 100), 2)percent_complete 
+        TRUNC((cast(completed_from_target_value as decimal) / target_value * 100), 2)percent_complete 
         FROM tasks WHERE aim_id=%s;"""
         with self.conn:
             cursor = self._get_cursor()

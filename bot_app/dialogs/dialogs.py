@@ -68,6 +68,7 @@ class Messages:
                                               "Статус задачи будет установлен на неактивный. Будет добавлена " \
                                               "дата выполнения задачи."
     insert_task_close_nd_task_error_msg: str = "Данная задача имеет целевой показатель. Выберите другую задачу"
+    statistics_choose_aim: str = "Выберите нужную цель прикрепленную к задачам"
 
 
 @dataclass(frozen=True)
@@ -87,6 +88,8 @@ class ButtonNames:
     notifier_disable_active_tasks: str = "Убрать задачу из активных"
     notifier_active_aims: str = "Получить данные об актиных целях"
     notifier_add_active_task_by_aim: str = "Добавить к активной цели новую задачу"
+    statistics_aims_stats: str = "Посмотреть состояние по целям"
+    statistics_tasks_stats: str = "Посмотреть статистику по задачам"
 
 
 @dataclass(frozen=True)
@@ -102,6 +105,8 @@ class ButtonCallbacks:
     notifier_active_aims: str = "notifier_active_aims"
     notifier_add_active_task_by_aim: str = "notifier_add_active_task_by_aim"
     notifier_active_aim_to_update: str = "notifier_add_active_aim"
+    statistics_aims_stats: str = "statistics_aims_stats"
+    statistics_tasks_stats: str = "statistics_tasks_stats"
 
 
 @dataclass(frozen=True)

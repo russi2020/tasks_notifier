@@ -10,13 +10,6 @@ BACK_TO_MENU_BUTTON = ReplyKeyboardMarkup(
 REMOVE_INLINE_KEYBOARD_REPLY = InlineKeyboardMarkup(inline_keyboard=[])
 SHARE_EMAIL = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Поделиться email')]])
 
-# MAIN_KB = ReplyKeyboardMarkup(
-#     resize_keyboard=True,
-#     one_time_keyboard=True
-# ).row(KeyboardButton(msg.services),
-#       KeyboardButton(msg.help)
-#       )
-
 
 class DbButtons:
 
@@ -218,12 +211,26 @@ class NotifierButtons:
         return kb
 
     @staticmethod
-    def active_aims_kb():
+    def active_aims_kb() -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup(row_width=1)
         kb.add(
             InlineKeyboardButton(buttons_names.notifier_active_aims_list,
                                  callback_data=buttons_callbacks.notifier_active_aims),
             InlineKeyboardButton(buttons_names.notifier_add_active_task_by_aim,
                                  callback_data=buttons_callbacks.notifier_add_active_task_by_aim)
+        )
+        return kb
+
+
+class StatisticsButtons:
+
+    @staticmethod
+    def aims_and_tasks_button() -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup(row_width=1)
+        kb.add(
+            InlineKeyboardButton(buttons_names.statistics_aims_stats,
+                                 callback_data=buttons_callbacks.statistics_aims_stats),
+            InlineKeyboardButton(buttons_names.statistics_tasks_stats,
+                                 callback_data=buttons_callbacks.statistics_tasks_stats)
         )
         return kb

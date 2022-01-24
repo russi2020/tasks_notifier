@@ -5,6 +5,7 @@ from bot_app.conversation.handlers.authorization_handler import init_common_hand
 from bot_app.conversation.handlers.aim_create_handler import init_aim_create_handler
 from bot_app.conversation.handlers.task_create_handler import init_task_create_handler
 from bot_app.conversation.handlers.notifier_handler import init_notifier_handler
+from bot_app.conversation.handlers.statistics_handler import init_statistics_handler
 from bot_app.dialogs.buttons import DbButtons, NotifierButtons
 from db.db_functions import DbFunctions
 from db.db_data_handler import DbDataHandler
@@ -27,3 +28,4 @@ def init_handlers(dp: Dispatcher, db: DbFunctions, db_data_handler: DbDataHandle
     init_task_create_handler(dp=dp, db=db, db_data_handler=db_data_handler,
                              db_buttons=db_buttons, ut_parser=ut_parser)
     init_notifier_handler(dp=dp, db=db, db_buttons=db_buttons, db_data_handler=db_data_handler)
+    init_statistics_handler(dp=dp, db_buttons=db_buttons, db_data_handler=db_data_handler)
