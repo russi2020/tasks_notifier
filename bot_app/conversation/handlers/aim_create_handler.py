@@ -7,11 +7,12 @@ from db.db_functions import DbFunctions
 from db.db_data_handler import DbDataHandler
 
 from bot_app.states.tasks_states import TasksState
-from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names
-from bot_app.dialogs.buttons import confirm_or_not_confirm_kb, PlanningButtons
+from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names, buttons_callbacks, msg
+from bot_app.dialogs.buttons import confirm_or_not_confirm_kb, PlanningButtons, DbButtons
 
 
-def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: DbDataHandler):
+def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: DbDataHandler,
+                            db_buttons: DbButtons):
     logger = logging.getLogger(__name__)
     logger.info("Start aim create handler")
 
@@ -19,18 +20,10 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
     async def handle_aims_functionality(message: types.Message, state: FSMContext):
         await state.finish()
         await message.bot.send_message(chat_id=message.chat.id,
-                                       text="Для возврата в меню нажмите кнопку ниже",
+                                       text=msg.back_to_menu_text,
                                        reply_markup=PlanningButtons.back_to_menu())
-        await message.answer("Выберите нужный функционал по целям",
+        await message.answer(msg.aims_choose_functionality,
                              reply_markup=PlanningButtons.aims_service_button())
-
-    # @dp.message_handler(lambda m: m.text == buttons_names.statistics_functionality)
-    # async def handle_aims_status(message: types.Message):
-    #     aims_status = db_data_handler.get_aims_status_string()
-    #     await message.bot.send_message(chat_id=message.chat.id,
-    #                                    text="Для возврата в меню нажмите кнопку ниже",
-    #                                    reply_markup=PlanningButtons.back_to_menu())
-    #     await message.answer(aims_status)
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"))
     async def get_tasks_by_aim_name(callback: types.CallbackQuery):
@@ -40,18 +33,18 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
 
     @dp.callback_query_handler(lambda c: c.data == "make_aims")
     async def start_aim_insert(callback: types.CallbackQuery):
-        await callback.message.answer("Напишите цель", reply_markup=PlanningButtons.back_to_menu())
+        await callback.message.answer(msg.aims_write_aim, reply_markup=PlanningButtons.back_to_menu())
         await TasksState.create_aims.set()
 
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
         if message.text == buttons_names.back_to_menu:
-            await message.answer("Открываю главное меню. Выберите категорию",
+            await message.answer(msg.aims_choose_category,
                                  reply_markup=PlanningButtons.main_kb())
             await state.finish()
             return
 
-    @dp.message_handler(lambda m: m.text == "Напишите цель", state=TasksState.create_aims)
+    @dp.message_handler(lambda m: m.text == msg.aims_write_aim, state=TasksState.create_aims)
     async def insert_aim_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["aim_name"] = message.text
@@ -69,7 +62,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
         state_data = dict(await state.get_data())
         aim_name = state_data.get("aim_name")
         db.insert_aim(aim_name)
-        await callback.message.answer("Цель добавлена в базу данных", reply_markup=PlanningButtons.main_kb())
+        await callback.message.answer(msg.aims_added_ti_db, reply_markup=PlanningButtons.main_kb())
         await state.finish()
 
     @dp.callback_query_handler(lambda c: c.data == confirmation_callbacks.not_confirm_aim,
@@ -77,3 +70,21 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
     async def not_confirmed_aim(callback: types.CallbackQuery, state: FSMContext):
         await state.finish()
         await start_aim_insert(callback)
+
+    @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.aims_status, state="*")
+    async def get_aims_status(callback: types.CallbackQuery):
+        aims_status = db_data_handler.get_aims_status_string()
+        await callback.message.answer(text=aims_status, reply_markup=PlanningButtons.main_kb())
+
+    @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.tasks_by_aims_list, state="*")
+    async def choose_aim(callback: types.CallbackQuery):
+        await callback.message.answer(text=msg.tasks_choose_aim,
+                                      reply_markup=db_buttons.get_aims_names_kb())
+
+    @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.aim_name)
+    async def get_tasks_by_aim(callback: types.CallbackQuery):
+        aim_id = int(callback.data.split("#")[-1])
+        tasks_info = db_data_handler.get_tasks_status_string(aim_id=aim_id)
+        await callback.message.answer(
+            text=tasks_info
+        )

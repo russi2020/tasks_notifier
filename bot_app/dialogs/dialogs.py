@@ -15,6 +15,10 @@ class Messages:
     add_target_value_or_not: str = "Нужно добавить числовое значение для задачи? "\
                                    "Например, если нужно прочитать 500 страниц."
     back_to_menu_text: str = "Открываю главное меню. Выберите категорию"
+    aims_choose_functionality : str = "Выберите нужный функционал по целям"
+    aims_write_aim: str = "Напишите цель"
+    aims_choose_category: str = "Открываю главное меню. Выберите категорию"
+    aims_added_ti_db: str = "Цель добавлена в базу данных"
     tasks_back_to_menu: str = "Для возврата в меню нажмите кнопку ниже"
     tasks_choose_aim: str = "Выберите цель, по которой надо посмореть задачи"
     tasks_name_inserted: str = "Имя задачи внесено"
@@ -107,6 +111,9 @@ class ButtonCallbacks:
     notifier_active_aim_to_update: str = "notifier_add_active_aim"
     statistics_aims_stats: str = "statistics_aims_stats"
     statistics_tasks_stats: str = "statistics_tasks_stats"
+    aims_status: str = "aims_status"
+    tasks_by_aims_list: str = "aims_tasks"
+    aim_name: str = "aim_name"
 
 
 @dataclass(frozen=True)

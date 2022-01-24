@@ -32,12 +32,12 @@ def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_b
         await callback.message.answer(aims_status, reply_markup=PlanningButtons.main_kb())
 
     @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.statistics_tasks_stats)
-    async def handle_aims_status(callback: types.CallbackQuery):
+    async def handle_tasks_status(callback: types.CallbackQuery):
         await callback.message.answer(text=msg.statistics_choose_aim,
-                                      reply_markup=db_buttons.get_active_aims_names_kb())
+                                      reply_markup=db_buttons.get_aims_names_kb())
         await StatisticState.statistics_tasks_state.set()
 
-    @dp.callback_query_handler(lambda c: c.data.startswith("active_aim_name"),
+    @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"),
                                state=StatisticState.statistics_tasks_state)
     async def add_active_task_for_active_aim(callback: types.CallbackQuery):
         aim_id = int(callback.data.split("#")[-1])
