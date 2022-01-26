@@ -1,4 +1,6 @@
+import logging.config
 import logging
+from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
@@ -6,13 +8,15 @@ from aiogram.dispatcher import Dispatcher, FSMContext
 from db.db_functions import DbFunctions
 from db.db_data_handler import DbDataHandler
 
-from bot_app.states.tasks_states import TasksState
+from bot_app.states.aims_states import AimsState
 from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names, buttons_callbacks, msg
 from bot_app.dialogs.buttons import confirm_or_not_confirm_kb, PlanningButtons, DbButtons
 
 
 def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: DbDataHandler,
                             db_buttons: DbButtons):
+    log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+    logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.info("Start aim create handler")
 
@@ -34,7 +38,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
     @dp.callback_query_handler(lambda c: c.data == "make_aims")
     async def start_aim_insert(callback: types.CallbackQuery):
         await callback.message.answer(msg.aims_write_aim, reply_markup=PlanningButtons.back_to_menu())
-        await TasksState.create_aims.set()
+        await AimsState.create_aims.set()
 
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
@@ -44,7 +48,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
             await state.finish()
             return
 
-    @dp.message_handler(lambda m: m.text == msg.aims_write_aim, state=TasksState.create_aims)
+    @dp.message_handler(state=AimsState.create_aims)
     async def insert_aim_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["aim_name"] = message.text
@@ -57,7 +61,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
             )
 
     @dp.callback_query_handler(lambda c: c.data == confirmation_callbacks.confirm_aim,
-                               state=TasksState.create_aims)
+                               state=AimsState.create_aims)
     async def confirmed_aim(callback: types.CallbackQuery, state: FSMContext):
         state_data = dict(await state.get_data())
         aim_name = state_data.get("aim_name")
@@ -66,7 +70,7 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
         await state.finish()
 
     @dp.callback_query_handler(lambda c: c.data == confirmation_callbacks.not_confirm_aim,
-                               state=TasksState.create_aims)
+                               state=AimsState.create_aims)
     async def not_confirmed_aim(callback: types.CallbackQuery, state: FSMContext):
         await state.finish()
         await start_aim_insert(callback)

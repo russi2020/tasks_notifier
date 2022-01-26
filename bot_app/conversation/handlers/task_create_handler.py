@@ -1,10 +1,11 @@
+import logging.config
 import logging
+from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
 
 from db.db_functions import DbFunctions
-from db.db_data_handler import DbDataHandler
 
 from bot_app.states.tasks_states import TasksState
 from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names, msg
@@ -15,9 +16,10 @@ from bot_app.tools.text_handler_date_values import DateTextHandler
 
 def init_task_create_handler(dp: Dispatcher,
                              db: DbFunctions,
-                             db_data_handler: DbDataHandler,
                              db_buttons: DbButtons,
                              ut_parser: UserTextParser):
+    log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+    logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.info("Start tasks create handler")
 
@@ -169,7 +171,10 @@ def init_task_create_handler(dp: Dispatcher,
             task_description = state_data.get("task_description") if state_data.get(
                 "task_description") else "Не внесено"
             aim_id = state_data.get("aim_id")
-            target_value = int(state_data.get("target_value"))
+            if state_data.get("target_value"):
+                target_value = int(state_data.get("target_value"))
+            else:
+                target_value = None
             task_deadline = state_data.get("task_deadline")
             user_date_text = ut_parser.parse_text(task_deadline)
             print(f"user_date_text: {user_date_text}")

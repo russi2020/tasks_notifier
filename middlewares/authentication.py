@@ -16,17 +16,14 @@ class AuthenticationMiddleware(BaseMiddleware):
     async def on_process_message(self, message: types.Message, *_, **__):
         is_active = await self.get_auth_user_status(message)
         setattr(message, "authorize", is_active)
-        m = getattr(message, "authorize")
 
     async def on_pre_process_message(self, message: types.Message, *_, **__):
         is_active = await self.get_auth_user_status(message)
         setattr(message, "authorize", is_active)
-        m = getattr(message, "authorize")
 
     async def on_process_callback_query(self, callback_query: types.CallbackQuery, *_, **__):
         is_active = await self.get_auth_user_status(callback_query.message)
         setattr(callback_query.message, "authorize", is_active)
-        m = getattr(callback_query.message, "authorize")
 
     async def get_auth_user_status(self, message: types.Message):
         user = message.chat

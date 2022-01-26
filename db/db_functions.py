@@ -1,3 +1,6 @@
+import logging.config
+import logging
+from os import path
 from typing import List, Tuple, Any
 
 import psycopg2 as pg
@@ -18,6 +21,10 @@ class DbFunctions:
             host=env('BOT_DB_HOST', ''),
             port=env('BOT_DB_PORT', ''),
         )
+        log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+        logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
+        logger = logging.getLogger(__name__)
+        logger.info("Start db instance")
 
     def _get_cursor(self):
         return self.conn.cursor()

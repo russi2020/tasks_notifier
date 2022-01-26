@@ -25,7 +25,6 @@ def init_handlers(dp: Dispatcher, db: DbFunctions, db_data_handler: DbDataHandle
 
     init_common_handlers(dp=dp, db=db, _env=_env, redis=redis_repository)
     init_aim_create_handler(dp=dp, db=db, db_data_handler=db_data_handler, db_buttons=db_buttons)
-    init_task_create_handler(dp=dp, db=db, db_data_handler=db_data_handler,
-                             db_buttons=db_buttons, ut_parser=ut_parser)
+    init_task_create_handler(dp=dp, db=db, db_buttons=db_buttons, ut_parser=ut_parser)
     init_notifier_handler(dp=dp, db=db, db_buttons=db_buttons, db_data_handler=db_data_handler)
     init_statistics_handler(dp=dp, db_buttons=db_buttons, db_data_handler=db_data_handler)

@@ -1,4 +1,6 @@
+import logging.config
 import logging
+from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
@@ -6,11 +8,12 @@ from aiogram.dispatcher import Dispatcher, FSMContext
 from bot_app.dialogs.buttons import PlanningButtons, StatisticsButtons, DbButtons
 from bot_app.dialogs.dialogs import buttons_names, msg, buttons_callbacks
 from bot_app.states.statistic_states import StatisticState
-from db.db_functions import DbFunctions
 from db.db_data_handler import DbDataHandler
 
 
 def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_buttons: DbButtons):
+    log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+    logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.info("Start statistics handler")
 

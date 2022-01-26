@@ -1,4 +1,6 @@
+import logging.config
 import logging
+from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
@@ -13,6 +15,8 @@ from db.db_data_handler import DbDataHandler
 
 def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons,
                           db_data_handler: DbDataHandler):
+    log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+    logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.info("Start tasks notifier handler")
 

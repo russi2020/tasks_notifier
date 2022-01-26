@@ -1,4 +1,6 @@
+import logging.config
 import logging
+from os import path
 
 from aiogram.utils.executor import Executor
 
@@ -16,9 +18,11 @@ from redis_repository.redis_repository import RedisRepository
 
 
 def start_app():
-    logging.basicConfig(level=20, format='[%(asctime)s: %(name)s: %(levelname)s] %(message)s')
+    log_file_path = path.join(path.dirname(path.abspath("__file__")), 'logging.ini')
+    logging.config.fileConfig(log_file_path, disable_existing_loggers=False)
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
+    logger.info("Starting app")
 
     environment = init_environment()
     bot, dispatcher = init_bot(environment)
