@@ -6,7 +6,7 @@ services:
     build: .
     volumes:
       - .:/app
-    restart: always
+    restart: on-failure
     environment:
       - DEBUG:${DEBUG}
       - DATABASE_URL=postgresql://${BOT_DB_USER}:${BOT_DB_PASSWORD}@${BOT_DB_HOST}:${BOT_DB_PORT}/${BOT_DB_NAME}
@@ -14,11 +14,49 @@ services:
       - host.docker.internal:host-gateway
     ports:
       - "80:80"
+    networks:
+      - main
 
   redis:
     image: redis:alpine
-    restart: always
+    container_name: redis
+    restart: on-failure
     expose:
       - 6379
     ports:
       - "6380:6379"
+    networks:
+      - main
+
+  celery_worker:
+      build: .
+      command: sh -c "celery -A notifier_app.tasks_notifier worker --loglevel=Info --without-mingle --without-gossip"
+      container_name: celery_worker
+      depends_on:
+        - tasks_notifier
+        - redis
+      links:
+        - redis
+      deploy:
+        replicas: 1
+        restart_policy:
+          condition: on-failure
+      hostname: celery_worker
+      networks:
+        - main
+      restart: on-failure
+
+  celery_beat:
+    build: .
+    command: sh -c "celery -A notifier_app.tasks_notifier beat -l Info"
+    container_name: celery_beat
+    depends_on:
+        - tasks_notifier
+        - redis
+    hostname: celery_beat
+    networks:
+      - main
+    restart: on-failure
+
+networks:
+  main:

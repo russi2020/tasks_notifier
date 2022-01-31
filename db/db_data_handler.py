@@ -121,9 +121,7 @@ class DbDataHandler:
 
     def check_status_for_complete(self, task_id: int) -> bool:
         check_task_complete = self.db.check_task_current_and_target_values(task_id=task_id)
-        print("check_task_complete -> ", check_task_complete)
         completed_from_target, target = check_task_complete
-        print("target -> ", target)
         if completed_from_target > target:
             return True
         return False
@@ -135,7 +133,6 @@ class DbDataHandler:
     def check_target_value_is_digit(self, task_id: int) -> bool:
         check_target_value = self.db.check_task_current_and_target_values(task_id=task_id)
         _, target = check_target_value
-        print("target -> ", target)
         if target:
             return True
         return False

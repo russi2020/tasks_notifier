@@ -148,12 +148,15 @@ def init_task_create_handler(dp: Dispatcher,
         state_data = dict(await state.get_data())
         task_name = state_data.get("task_name")
         task_description = state_data.get("task_description") if state_data.get(
-            "task_description") else "Не внесено"
+            "task_description") else None
+        target_value = state_data.get("target_value") if state_data.get(
+            "target_value") else 0
         task_deadline = state_data.get("task_deadline")
         await message.answer(
             text=f"Внесены следующие данные по задаче:\n"
                  f"Наименование задачи: {task_name}.\n"
                  f"Описание задачи: {task_description}\n"
+                 f"Целевой показатель: {target_value}\n"
                  f"Срок исполненения задачи: {task_deadline}\n"
                  f"Все верно внесено?",
             reply_markup=confirm_or_not_confirm_kb(
