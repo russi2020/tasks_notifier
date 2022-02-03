@@ -151,9 +151,9 @@ class DbFunctions:
 
     def select_task_statistics(self, aim_id: int, task_id: int,
                                value_for_division: int = 1) -> List[tuple]:
-        query = """SELECT td.id, td.task_name, td.residue_target_value, residue_to_deadline, 
+        query = """SELECT td.id, td.task_name, td.target_value, td.residue_target_value, residue_to_deadline, 
         TRUNC((cast(td.residue_target_value as decimal) / td.residue_to_deadline), 2)
-        as target_value_per_week FROM (SELECT t.id, t.task_name, 
+        as target_value_per_week FROM (SELECT t.id, t.task_name, t.target_value,
         (t.target_value - t.completed_from_target_value)as residue_target_value, 
         TRUNC(cast((deadline - CURRENT_DATE) as decimal) / %s ,2)
         as residue_to_deadline FROM tasks t INNER JOIN deadline d ON t.id=d.task_id 
