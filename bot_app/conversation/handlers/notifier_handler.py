@@ -211,6 +211,9 @@ def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons
             db_data_handler.close_completed_task(task_id=task_id)
             await message.answer(text=msg.insert_results_digit_task_complete,
                                  reply_markup=PlanningButtons.main_kb())
+            await state.finish()
+        else:
+            await state.finish()
 
     @dp.callback_query_handler(lambda c: c.data == confirmation_callbacks.insert_task_digit_not_confirm,
                                state=InsertResultState.get_result_state)
