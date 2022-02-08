@@ -67,8 +67,7 @@ class DbFunctions:
     def insert_bot_user_info(self, name: str, lastname: str, email: str, telegram_id: int):
         query = """INSERT INTO planning_bot_user(name, surname, email, telegram_id) VALUES(%s, %s, %s, %s);
         """
-        with self.conn:
-            self._execute(query, (name, lastname, email, telegram_id,))
+        self._execute(query, (name, lastname, email, telegram_id,))
 
     def insert_aim(self, aim_value: str):
         query = """INSERT INTO aims(aim_name) VALUES (%s);"""

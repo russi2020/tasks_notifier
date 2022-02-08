@@ -15,7 +15,7 @@ from environment import Environment
 def init_common_handlers(dp: Dispatcher, db: DbFunctions, _env: Environment, redis: RedisRepository):
     @check_authorised(redis=redis)
     async def _start_handler(message: types.Message, state: FSMContext):
-        await state.finish()
+        await state.reset_state()
         await message.answer("Приветствую тебя, для начала тебе необходимо зарегистрироваться👇",
                              reply_markup=authorize())
 

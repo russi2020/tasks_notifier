@@ -17,7 +17,6 @@ class Messages:
     back_to_menu_text: str = "Открываю главное меню. Выберите категорию"
     aims_choose_functionality : str = "Выберите нужный функционал по целям"
     aims_write_aim: str = "Напишите цель"
-    aims_choose_category: str = "Открываю главное меню. Выберите категорию"
     aims_added_ti_db: str = "Цель добавлена в базу данных"
     tasks_back_to_menu: str = "Для возврата в меню нажмите кнопку ниже"
     tasks_choose_aim: str = "Выберите цель, по которой надо посмореть задачи"

@@ -25,15 +25,13 @@ def init_task_create_handler(dp: Dispatcher,
 
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
-        if message.text == buttons_names.back_to_menu:
-            await message.answer(msg.back_to_menu_text,
-                                 reply_markup=PlanningButtons.main_kb())
-            await state.finish()
-            return
+        await state.reset_state()
+        await message.answer(msg.back_to_menu_text,
+                             reply_markup=PlanningButtons.main_kb())
 
     @dp.message_handler(lambda m: m.text == buttons_names.tasks_functionality, state="*")
     async def handle_aims_tasks(message: types.Message, state: FSMContext):
-        await state.finish()
+        await state.reset_state()
         await message.bot.send_message(chat_id=message.chat.id,
                                        text=msg.tasks_back_to_menu,
                                        reply_markup=PlanningButtons.back_to_menu())
@@ -50,7 +48,8 @@ def init_task_create_handler(dp: Dispatcher,
         await callback.message.answer(msg.tasks_write_task_name,
                                       reply_markup=PlanningButtons.back_to_menu())
 
-    @dp.message_handler(state=TasksState.insert_task_name)
+    @dp.message_handler(lambda m: m.text not in buttons_names.__dict__.values(),
+                        state=TasksState.insert_task_name)
     async def insert_task_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["task_name"] = message.text

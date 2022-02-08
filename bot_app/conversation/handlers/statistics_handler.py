@@ -19,7 +19,7 @@ def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_b
 
     @dp.message_handler(lambda m: m.text == buttons_names.statistics_functionality, state="*")
     async def handle_statistics_functionality(message: types.Message, state: FSMContext):
-        await state.finish()
+        await state.reset_state()
         await message.bot.send_message(chat_id=message.chat.id,
                                        text=msg.tasks_back_to_menu,
                                        reply_markup=PlanningButtons.back_to_menu())

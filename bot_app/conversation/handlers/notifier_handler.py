@@ -22,15 +22,13 @@ def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons
 
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
-        if message.text == buttons_names.back_to_menu:
-            await message.answer(msg.back_to_menu_text,
-                                 reply_markup=PlanningButtons.main_kb())
-            await state.finish()
-            return
+        await state.reset_state()
+        await message.answer(msg.back_to_menu_text,
+                             reply_markup=PlanningButtons.main_kb())
 
     @dp.message_handler(lambda m: m.text == buttons_names.notifier_functionality, state="*")
     async def start_notifier_handler(message: types.Message, state: FSMContext):
-        await state.finish()
+        await state.reset_state()
         await message.bot.send_message(chat_id=message.chat.id,
                                        text=msg.back_to_menu_text,
                                        reply_markup=PlanningButtons.back_to_menu())

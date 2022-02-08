@@ -1,6 +1,6 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
-from bot_app.dialogs.dialogs import buttons_callbacks, buttons_names
+from bot_app.dialogs.dialogs import buttons_callbacks, buttons_names, msg
 from db.db_functions import DbFunctions
 
 BACK_TO_MENU_TEXT: str = 'Вернуться в меню'
@@ -16,13 +16,18 @@ class DbButtons:
     def __init__(self, dbf: DbFunctions):
         self.db = dbf
 
-    def get_aims_names_kb(self) -> InlineKeyboardMarkup:
-        aims = self.db.get_all_aims_ids_and_names()
+    def get_aims_names_kb(self, offset: int = 0) -> InlineKeyboardMarkup:
+        aims = self.db.get_all_aims_ids_and_names()[0 + offset:5 + offset]
         kb = InlineKeyboardMarkup()
         for aim in aims:
             kb.add(
-                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#{aim[0]}"),
+                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#offset#{aim[0]}"),
             )
+        kb.row(
+            InlineKeyboardButton(
+                msg.btn_back if offset else msg.btn_forward,
+                callback_data="edit_config#0" if offset else "edit_config#5")
+        )
         return kb
 
     def get_active_aims_names_kb(self) -> InlineKeyboardMarkup:

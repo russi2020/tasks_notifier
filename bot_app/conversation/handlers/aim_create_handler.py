@@ -22,12 +22,12 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
 
     @dp.message_handler(lambda m: m.text == buttons_names.aims_functionality, state="*")
     async def handle_aims_functionality(message: types.Message, state: FSMContext):
-        await state.finish()
+        await state.reset_state()
         await message.bot.send_message(chat_id=message.chat.id,
                                        text=msg.back_to_menu_text,
                                        reply_markup=PlanningButtons.back_to_menu())
-        await message.answer(msg.aims_choose_functionality,
-                             reply_markup=PlanningButtons.aims_service_button())
+        await dp.bot.send_message(chat_id=message.chat.id, text=msg.aims_choose_functionality,
+                                  reply_markup=PlanningButtons.aims_service_button())
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"))
     async def get_tasks_by_aim_name(callback: types.CallbackQuery):
@@ -37,18 +37,20 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
 
     @dp.callback_query_handler(lambda c: c.data == "make_aims")
     async def start_aim_insert(callback: types.CallbackQuery):
-        await callback.message.answer(msg.aims_write_aim, reply_markup=PlanningButtons.back_to_menu())
+        await dp.bot.send_message(
+            chat_id=callback.message.chat.id,
+            text=msg.aims_write_aim,
+            reply_markup=PlanningButtons.back_to_menu()
+        )
         await AimsState.create_aims.set()
 
     @dp.message_handler(lambda m: m.text == buttons_names.back_to_menu, state="*")
     async def go_to_main_menu(message: types.Message, state: FSMContext):
-        if message.text == buttons_names.back_to_menu:
-            await message.answer(msg.aims_choose_category,
-                                 reply_markup=PlanningButtons.main_kb())
-            await state.finish()
-            return
+        await message.answer(msg.back_to_menu_text,
+                             reply_markup=PlanningButtons.main_kb())
+        await state.reset_state()
 
-    @dp.message_handler(state=AimsState.create_aims)
+    @dp.message_handler(lambda m: m.text not in buttons_names.__dict__.values(), state=AimsState.create_aims)
     async def insert_aim_name(message: types.Message, state: FSMContext):
         async with state.proxy() as data:
             data["aim_name"] = message.text
