@@ -1,3 +1,5 @@
+from typing import List, Tuple, Any
+
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
 from bot_app.dialogs.dialogs import buttons_callbacks, buttons_names, msg
@@ -9,62 +11,6 @@ BACK_TO_MENU_BUTTON = ReplyKeyboardMarkup(
     [[KeyboardButton(text=BACK_TO_MENU_TEXT)]], resize_keyboard=True)
 REMOVE_INLINE_KEYBOARD_REPLY = InlineKeyboardMarkup(inline_keyboard=[])
 SHARE_EMAIL = ReplyKeyboardMarkup(keyboard=[[KeyboardButton(text='Поделиться email')]])
-
-
-class DbButtons:
-
-    def __init__(self, dbf: DbFunctions):
-        self.db = dbf
-
-    def get_aims_names_kb(self, offset: int = 0) -> InlineKeyboardMarkup:
-        aims = self.db.get_all_aims_ids_and_names()[0 + offset:5 + offset]
-        kb = InlineKeyboardMarkup()
-        for aim in aims:
-            kb.add(
-                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#offset#{aim[0]}"),
-            )
-        kb.row(
-            InlineKeyboardButton(
-                msg.btn_back if offset else msg.btn_forward,
-                callback_data="edit_config#0" if offset else "edit_config#5")
-        )
-        return kb
-
-    def get_active_aims_names_kb(self) -> InlineKeyboardMarkup:
-        active_aims = self.db.select_active_or_not_active_aims(active=True)
-        kb = InlineKeyboardMarkup()
-        for aim in active_aims:
-            kb.add(
-                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"active_aim_name#{aim[0]}"),
-            )
-        return kb
-
-    def get_active_or_not_active_aims_names_kb(self, active: bool) -> InlineKeyboardMarkup:
-        not_active_aims = self.db.select_active_or_not_active_aims(active=active)
-        kb = InlineKeyboardMarkup()
-        for aim in not_active_aims:
-            kb.add(
-                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#{aim[0]}"),
-            )
-        return kb
-
-    def get_tasks_names_kb(self, aim_id: int) -> InlineKeyboardMarkup:
-        tasks = self.db.get_all_tasks_ids_and_names_by_aim_id(aim_id=aim_id)
-        kb = InlineKeyboardMarkup()
-        for task in tasks:
-            kb.add(
-                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name#{task[0]}"),
-            )
-        return kb
-
-    def get_active_and_not_active_tasks_names_kb(self, aim_id: int, active: bool) -> InlineKeyboardMarkup:
-        tasks = self.db.select_active_or_not_active_tasks_by_aim_id(aim_id=aim_id, active=active)
-        kb = InlineKeyboardMarkup()
-        for task in tasks:
-            kb.add(
-                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name_activate#{task[0]}"),
-            )
-        return kb
 
 
 def authorize() -> InlineKeyboardMarkup:
@@ -84,6 +30,89 @@ def confirm_or_not_confirm_kb(confirm: str, not_confirm: str) -> InlineKeyboardM
         InlineKeyboardButton('Нет', callback_data=not_confirm)
     )
     return kb
+
+
+class DbButtons:
+
+    def __init__(self, dbf: DbFunctions):
+        self.db = dbf
+
+    @staticmethod
+    def get_base_aims_db_kb(aims_by_page: List[Tuple[Any, ...]], db_info_len: int,
+                            page: int) -> InlineKeyboardMarkup:
+        kb = InlineKeyboardMarkup()
+        for aim in aims_by_page:
+            kb.add(
+                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#{aim[0]}"),
+            )
+        if db_info_len > 5:
+            kb = DbButtons.add_back_forward_buttons(kb=kb, page=page, aims_list=aims_by_page)
+        return kb
+
+    @staticmethod
+    def add_back_forward_buttons(kb: InlineKeyboardMarkup, page: int,
+                                 aims_list: list) -> InlineKeyboardMarkup:
+        if page - 1 > 0:
+            kb.add(
+                InlineKeyboardButton(
+                    text=msg.btn_back,
+                    callback_data=f"edit_config#{page - 1}"
+                )
+            )
+        if page <= (len(aims_list) / 5) + 1:
+            kb.add(
+                InlineKeyboardButton(
+                    text=msg.btn_forward,
+                    callback_data=f"edit_config#{page + 1}"
+                )
+            )
+        return kb
+
+    def get_aims_names_kb(self, page: int = 1) -> InlineKeyboardMarkup:
+        aims = self.db.get_all_aims_ids_and_names()
+        aims_by_page = aims[(page - 1) * 5:page * 5]
+        db_info_len = len(aims)
+        kb = DbButtons.get_base_aims_db_kb(aims_by_page=aims_by_page, db_info_len=db_info_len, page=page)
+        return kb
+
+    def get_active_aims_names_kb(self) -> InlineKeyboardMarkup:
+        active_aims = self.db.select_active_or_not_active_aims(active=True)
+        kb = InlineKeyboardMarkup()
+        for aim in active_aims:
+            kb.add(
+                InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"active_aim_name#{aim[0]}"),
+            )
+        return kb
+
+    def get_active_or_not_active_aims_names_kb(self, page: int = 1,
+                                               active: bool = False) -> InlineKeyboardMarkup:
+        not_active_aims = self.db.select_active_or_not_active_aims(active=active)
+        not_active_aims_by_page = not_active_aims[(page - 1) * 5:page * 5]
+        db_info_len = len(not_active_aims)
+        kb = DbButtons.get_base_aims_db_kb(
+            aims_by_page=not_active_aims_by_page,
+            db_info_len=db_info_len,
+            page=page
+        )
+        return kb
+
+    def get_tasks_names_kb(self, aim_id: int) -> InlineKeyboardMarkup:
+        tasks = self.db.get_all_tasks_ids_and_names_by_aim_id(aim_id=aim_id)
+        kb = InlineKeyboardMarkup()
+        for task in tasks:
+            kb.add(
+                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name#{task[0]}"),
+            )
+        return kb
+
+    def get_active_and_not_active_tasks_names_kb(self, aim_id: int, active: bool) -> InlineKeyboardMarkup:
+        tasks = self.db.select_active_or_not_active_tasks_by_aim_id(aim_id=aim_id, active=active)
+        kb = InlineKeyboardMarkup()
+        for task in tasks:
+            kb.add(
+                InlineKeyboardButton(f"{task[0]}. {task[1]}", callback_data=f"task_name_activate#{task[0]}"),
+            )
+        return kb
 
 
 class PlanningButtons:

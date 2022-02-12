@@ -1,14 +1,16 @@
-import logging.config
 import logging
+import logging.config
 from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
 
+from bot_app.conversation.handlers.common_functions import set_or_update_config
 from bot_app.dialogs.buttons import PlanningButtons, StatisticsButtons, DbButtons
 from bot_app.dialogs.dialogs import buttons_names, msg, buttons_callbacks
 from bot_app.states.statistic_states import StatisticState
 from db.db_data_handler import DbDataHandler
+from redis_repository.redis_cache import cache
 
 
 def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_buttons: DbButtons):
@@ -25,6 +27,8 @@ def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_b
                                        reply_markup=PlanningButtons.back_to_menu())
         await message.answer("Выберите нужный функционал по статистике",
                              reply_markup=StatisticsButtons.aims_and_tasks_button())
+        cache.setex(f"last_msg_{message.from_user.id}", 60 * 60 * 24,
+                    message.message_id+3)
 
     @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.statistics_aims_stats)
     async def handle_aims_status(callback: types.CallbackQuery):
@@ -39,6 +43,12 @@ def init_statistics_handler(dp: Dispatcher, db_data_handler: DbDataHandler, db_b
         await callback.message.answer(text=msg.statistics_choose_aim,
                                       reply_markup=db_buttons.get_aims_names_kb())
         await StatisticState.statistics_tasks_state.set()
+
+    @dp.callback_query_handler(lambda c: c.data.startswith("edit_config"),
+                               state=StatisticState.statistics_tasks_state)
+    async def update_statistics(callback_query: types.CallbackQuery):
+        await set_or_update_config(dp=dp, db_function=db_buttons.get_aims_names_kb,
+                                   callback=callback_query, text=msg.tasks_choose_aim)
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"),
                                state=StatisticState.statistics_tasks_state)

@@ -1,17 +1,18 @@
-import logging.config
 import logging
+import logging.config
 from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
 
-from db.db_functions import DbFunctions
-
-from bot_app.states.tasks_states import TasksState
-from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names, msg
+from bot_app.conversation.handlers.common_functions import set_or_update_config
 from bot_app.dialogs.buttons import confirm_or_not_confirm_kb, DbButtons, PlanningButtons
+from bot_app.dialogs.dialogs import confirmation_callbacks, buttons_names, msg
+from bot_app.states.tasks_states import TasksState
 from bot_app.tools.text_handler import UserTextParser
 from bot_app.tools.text_handler_date_values import DateTextHandler
+from db.db_functions import DbFunctions
+from redis_repository.redis_cache import cache
 
 
 def init_task_create_handler(dp: Dispatcher,
@@ -37,7 +38,13 @@ def init_task_create_handler(dp: Dispatcher,
                                        reply_markup=PlanningButtons.back_to_menu())
         await message.answer(msg.tasks_choose_aim,
                              reply_markup=db_buttons.get_aims_names_kb())
+        cache.setex(f"last_msg_{message.from_user.id}", 60*60*24, message.message_id + 2)
         await TasksState.create_tasks.set()
+
+    @dp.callback_query_handler(lambda c: c.data.startswith("edit_config"), state=TasksState.create_tasks)
+    async def update_tasks_info(callback_query: types.CallbackQuery = None):
+        await set_or_update_config(dp=dp, db_function=db_buttons.get_aims_names_kb,
+                                   callback=callback_query, text=msg.tasks_choose_aim)
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"), state=TasksState.create_tasks)
     async def create_tasks(callback: types.CallbackQuery, state: FSMContext):

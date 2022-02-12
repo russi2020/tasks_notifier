@@ -1,16 +1,18 @@
-import logging.config
 import logging
+import logging.config
 from os import path
 
 from aiogram import types
 from aiogram.dispatcher import Dispatcher, FSMContext
 
+from bot_app.conversation.handlers.common_functions import set_or_update_config
 from bot_app.dialogs.buttons import PlanningButtons, NotifierButtons, DbButtons, confirm_or_not_confirm_kb
 from bot_app.dialogs.dialogs import buttons_names, buttons_callbacks, msg, confirmation_callbacks
-from bot_app.states.notifier_states import NotifierStates
 from bot_app.states.insert_results_state import InsertResultState
-from db.db_functions import DbFunctions
+from bot_app.states.notifier_states import NotifierStates
 from db.db_data_handler import DbDataHandler
+from db.db_functions import DbFunctions
+from redis_repository.redis_cache import cache
 
 
 def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons,
@@ -33,6 +35,8 @@ def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons
                                        text=msg.back_to_menu_text,
                                        reply_markup=PlanningButtons.back_to_menu())
         await message.answer(text=msg.notifier_message, reply_markup=NotifierButtons.notifier_kb())
+        cache.setex(f"last_msg_{message.from_user.id}", 60 * 60 * 24,
+                    message.message_id+3)
         await NotifierStates.notifier_state.set()
 
     @dp.callback_query_handler(lambda c: c.data == buttons_callbacks.activate_aims,
@@ -42,6 +46,12 @@ def init_notifier_handler(dp: Dispatcher, db: DbFunctions, db_buttons: DbButtons
                                       reply_markup=db_buttons.get_active_or_not_active_aims_names_kb(
                                           active=False)
                                       )
+
+    @dp.callback_query_handler(lambda c: c.data.startswith("edit_config"),
+                               state=NotifierStates.notifier_state)
+    async def update_notifier_active_aims(callback: types.CallbackQuery):
+        await set_or_update_config(dp=dp, db_function=db_buttons.get_active_or_not_active_aims_names_kb,
+                                   callback=callback, text=msg.notifier_choose_aim_to_activate, active=False)
 
     @dp.callback_query_handler(lambda c: c.data.startswith("aim_name"), state=NotifierStates.notifier_state)
     async def update_aim_status(callback: types.CallbackQuery, state: FSMContext):
