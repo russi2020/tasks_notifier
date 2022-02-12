@@ -50,14 +50,21 @@ class DbFunctions:
             cursor.execute(query, values)
             cursor.execute("COMMIT")
 
-    def get_users_telegram_ids(self):
+    def find_user_id_by_telegram_id(self, telegram_id: int) -> int:
+        query = """SELECT id FROM planning_bot_user WHERE telegram_id=%s;
+        """
+        with self._get_cursor() as cursor:
+            cursor.execute(query=query, vars=(telegram_id,))
+            return cursor.fetchone()[0]
+
+    def get_users_telegram_ids(self) -> List[Tuple[Any, ...]]:
         query = """SELECT telegram_id FROM planning_bot_user;
         """
         with self._get_cursor() as cursor:
             cursor.execute(query=query)
             return cursor.fetchall()
 
-    def find_user_by_email(self, email_to_check: str, values: tuple = None):
+    def find_user_by_email(self, email_to_check: str, values: tuple = None) -> List[Tuple[Any, ...]]:
         query = """SELECT name, surname, email, telegram_id FROM planning_bot_user WHERE email = '%s';""" \
                 % (email_to_check,)
         with self._get_cursor() as cursor:
@@ -69,9 +76,9 @@ class DbFunctions:
         """
         self._execute(query, (name, lastname, email, telegram_id,))
 
-    def insert_aim(self, aim_value: str):
-        query = """INSERT INTO aims(aim_name) VALUES (%s);"""
-        self._execute(query, (aim_value,))
+    def insert_aim(self, aim_value: str, user_id: int):
+        query = """INSERT INTO aims(aim_name, bot_user_id) VALUES (%s, %s);"""
+        self._execute(query, (aim_value, user_id,))
 
     def get_all_aims_info(self) -> List[Tuple[Any, ...]]:
         query = """SELECT * FROM aims;"""

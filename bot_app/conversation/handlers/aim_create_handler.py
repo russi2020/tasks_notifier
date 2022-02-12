@@ -70,7 +70,9 @@ def init_aim_create_handler(dp: Dispatcher, db: DbFunctions, db_data_handler: Db
     async def confirmed_aim(callback: types.CallbackQuery, state: FSMContext):
         state_data = dict(await state.get_data())
         aim_name = state_data.get("aim_name")
-        db.insert_aim(aim_name)
+        user_telegram_id = callback.from_user.id
+        user_id = db.find_user_id_by_telegram_id(user_telegram_id)
+        db.insert_aim(aim_name, user_id)
         await callback.message.answer(msg.aims_added_ti_db, reply_markup=PlanningButtons.main_kb())
         await state.finish()
 
