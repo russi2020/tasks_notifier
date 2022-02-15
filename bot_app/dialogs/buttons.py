@@ -38,20 +38,20 @@ class DbButtons:
         self.db = dbf
 
     @staticmethod
-    def get_base_aims_db_kb(aims_by_page: List[Tuple[Any, ...]], db_info_len: int,
+    def get_base_aims_db_kb(aims_by_page: List[Tuple[Any, ...]], db_list_len: int,
                             page: int) -> InlineKeyboardMarkup:
         kb = InlineKeyboardMarkup()
         for aim in aims_by_page:
             kb.add(
                 InlineKeyboardButton(f"{aim[0]}. {aim[1]}", callback_data=f"aim_name#{aim[0]}"),
             )
-        if db_info_len > 5:
-            kb = DbButtons.add_back_forward_buttons(kb=kb, page=page, aims_list=aims_by_page)
+        if db_list_len > 5:
+            kb = DbButtons.add_back_forward_buttons(kb=kb, page=page, db_list_len=db_list_len)
         return kb
 
     @staticmethod
     def add_back_forward_buttons(kb: InlineKeyboardMarkup, page: int,
-                                 aims_list: list) -> InlineKeyboardMarkup:
+                                 db_list_len: int) -> InlineKeyboardMarkup:
         if page - 1 > 0:
             kb.add(
                 InlineKeyboardButton(
@@ -59,7 +59,7 @@ class DbButtons:
                     callback_data=f"edit_config#{page - 1}"
                 )
             )
-        if page <= (len(aims_list) / 5) + 1:
+        if page <= (db_list_len / 5) + 1:
             kb.add(
                 InlineKeyboardButton(
                     text=msg.btn_forward,
@@ -71,8 +71,8 @@ class DbButtons:
     def get_aims_names_kb(self, page: int = 1) -> InlineKeyboardMarkup:
         aims = self.db.get_all_aims_ids_and_names()
         aims_by_page = aims[(page - 1) * 5:page * 5]
-        db_info_len = len(aims)
-        kb = DbButtons.get_base_aims_db_kb(aims_by_page=aims_by_page, db_info_len=db_info_len, page=page)
+        db_list_len = len(aims)
+        kb = DbButtons.get_base_aims_db_kb(aims_by_page=aims_by_page, db_list_len=db_list_len, page=page)
         return kb
 
     def get_active_aims_names_kb(self) -> InlineKeyboardMarkup:
@@ -88,10 +88,10 @@ class DbButtons:
                                                active: bool = False) -> InlineKeyboardMarkup:
         not_active_aims = self.db.select_active_or_not_active_aims(active=active)
         not_active_aims_by_page = not_active_aims[(page - 1) * 5:page * 5]
-        db_info_len = len(not_active_aims)
+        db_list_len = len(not_active_aims)
         kb = DbButtons.get_base_aims_db_kb(
             aims_by_page=not_active_aims_by_page,
-            db_info_len=db_info_len,
+            db_list_len=db_list_len,
             page=page
         )
         return kb
